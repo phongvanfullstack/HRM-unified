@@ -3,6 +3,10 @@ const nextConfig = {
   // Enable standalone output for Docker
   output: 'standalone',
 
+  // Prevent webpack from bundling packages that require native binaries
+  // Required for Prisma to work correctly on Vercel/serverless
+  serverExternalPackages: ['@prisma/client', 'prisma'],
+
   // ═══════════════════════════════════════════════════════════════
   // BUILD SETTINGS - Ignore lint/type errors for faster builds
   // ═══════════════════════════════════════════════════════════════

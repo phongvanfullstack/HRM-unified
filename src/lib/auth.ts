@@ -117,56 +117,57 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials, request) {
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error('Email và mật khẩu là bắt buộc')
-        }
+        try {
+          if (!credentials?.email || !credentials?.password) {
+            return null
+          }
 
-        const email = credentials.email as string
-        const password = credentials.password as string
+          const email = credentials.email as string
+          const password = credentials.password as string
 
-        const user = await db.user.findFirst({
-          where: {
-            email: email,
-            isActive: true,
-          },
-          include: {
-            tenant: true,
-          },
-        })
+          const user = await db.user.findFirst({
+            where: {
+              email: email,
+              isActive: true,
+            },
+            include: {
+              tenant: true,
+            },
+          })
 
-        if (!user) {
-          throw new Error('Email hoặc mật khẩu không chính xác')
-        }
+          if (!user || !user.tenant.isActive) {
+            return null
+          }
 
-        if (!user.tenant.isActive) {
-          throw new Error('Tài khoản công ty đã bị vô hiệu hóa')
-        }
+          const isPasswordValid = await bcrypt.compare(password, user.passwordHash)
 
-        const isPasswordValid = await bcrypt.compare(password, user.passwordHash)
+          if (!isPasswordValid) {
+            return null
+          }
 
-        if (!isPasswordValid) {
-          throw new Error('Email hoặc mật khẩu không chính xác')
-        }
+          // Update last login
+          await db.user.update({
+            where: { id: user.id },
+            data: { lastLoginAt: new Date() },
+          })
 
-        // Update last login
-        await db.user.update({
-          where: { id: user.id },
-          data: { lastLoginAt: new Date() },
-        })
+          // Capture user agent fingerprint for session binding
+          const userAgent = request?.headers?.get?.('user-agent') || ''
+          const uaHash = userAgent ? hashUserAgent(userAgent) : undefined
 
-        // Capture user agent fingerprint for session binding
-        const userAgent = request?.headers?.get?.('user-agent') || ''
-        const uaHash = userAgent ? hashUserAgent(userAgent) : undefined
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-          tenantId: user.tenantId,
-          tenantName: user.tenant.name,
-          employeeId: user.employeeId || undefined,
-          uaHash,
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+            tenantId: user.tenantId,
+            tenantName: user.tenant.name,
+            employeeId: user.employeeId || undefined,
+            uaHash,
+          }
+        } catch (error) {
+          console.error('[Auth] authorize error:', error)
+          return null
         }
       },
     }),

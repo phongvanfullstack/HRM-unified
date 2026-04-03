@@ -31,6 +31,7 @@ type LoginForm = z.infer<typeof loginSchema>
 const ERROR_MESSAGES: Record<string, string> = {
   CredentialsSignin: "Email hoặc mật khẩu không chính xác",
   InvalidCredentials: "Email hoặc mật khẩu không chính xác",
+  Configuration: "Email hoặc mật khẩu không chính xác",
   Callback: "Có lỗi xảy ra trong quá trình xác thực",
   OAuthSignin: "Có lỗi xảy ra khi kết nối với provider",
   OAuthCallback: "Có lỗi xảy ra khi xác thực từ provider",
@@ -167,11 +168,11 @@ function LoginForm() {
           <div className="space-y-1.5 text-xs text-muted-foreground">
             <div className="flex justify-between">
               <span>Admin:</span>
-              <span className="font-mono">admin@demo.com / Admin@123</span>
+              <span className="font-mono">admin@demo.com / Demo@123</span>
             </div>
             <div className="flex justify-between">
               <span>HR:</span>
-              <span className="font-mono">hr@demo.com / HRManager@123</span>
+              <span className="font-mono">hr@demo.com / Demo@123</span>
             </div>
           </div>
         </div>
