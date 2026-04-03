@@ -85,9 +85,6 @@ enum EmailStatus {
 enum ImportStatus {
   PENDING
   PROCESSING
-  DRY_RUN
-  PREVIEWING
-  EXECUTING
   COMPLETED
   FAILED
   ROLLED_BACK
@@ -343,13 +340,13 @@ model Tenant {
   internalApplications InternalApplication[]
   careerProfiles       CareerProfile[]
 
-  // Phase 9: KPI, Discipline, Salary Advance, Import
+  // Migrated from HRM
   kpiPeriods           KPIPeriod[]
   kpiScores            KPIScore[]
   disciplinaryRecords  DisciplinaryRecord[]
   salaryAdvances       SalaryAdvance[]
   importSessions       ImportSession[]
-  systemSettingsPhase9 SystemSetting[]
+  systemSettings       SystemSetting[]
 
   @@map("tenants")
 }
@@ -455,11 +452,11 @@ model User {
   // Phase 7: Custom Roles
   customRoles UserCustomRole[]
 
-  // Phase 9: KPI, Salary Advance, Import
-  kpiPeriodsCreated      KPIPeriod[]     @relation("KPICreator")
-  kpiScoresEntered       KPIScore[]      @relation("KPIEnterer")
-  salaryAdvancesApproved SalaryAdvance[] @relation("AdvanceApprover")
-  importSessionsCreated  ImportSession[] @relation("ImportUser")
+  // Migrated from HRM
+  kpiPeriodsCreated KPIPeriod[]    @relation("KPICreator")
+  kpiScoresEntered  KPIScore[]     @relation("KPIEnterer")
+  advancesApproved  SalaryAdvance[] @relation("AdvanceApprover")
+  importSessions    ImportSession[] @relation("ImportUser")
 
   @@unique([tenantId, email])
   @@map("users")
@@ -726,7 +723,7 @@ model Employee {
   internalApplications       InternalApplication[]
   careerProfile              CareerProfile?
 
-  // Phase 9: KPI, Discipline, Salary Advance
+  // Migrated from HRM
   kpiScores           KPIScore[]
   disciplinaryRecords DisciplinaryRecord[]
   salaryAdvances      SalaryAdvance[]
@@ -7226,13 +7223,20 @@ enum ImportType {
   POSITIONS
 }
 
-
+enum DataImportStatus {
+  DRY_RUN
+  PREVIEWING
+  EXECUTING
+  COMPLETED
+  FAILED
+  ROLLED_BACK
+}
 
 model ImportSession {
   id            String       @id @default(cuid())
   tenantId      String       @map("tenant_id")
   type          ImportType
-  status        ImportStatus @default(DRY_RUN)
+  status        DataImportStatus @default(DRY_RUN)
   fileName      String       @map("file_name")
   fileSize      Int          @map("file_size")
   totalRows     Int          @map("total_rows")
